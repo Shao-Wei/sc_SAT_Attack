@@ -30,3 +30,20 @@
 *.exe
 *.out
 *.app
+
+## Specified for this repo
+source/cmsat-2.9.9/
+source/cudd-2.5.0/
+source/lingeling/
+source/minisat/
+
+# source/src
+source/src/lcheck
+source/src/lcmp
+source/src/lex.yy.cc
+source/src/lle
+source/src/simplify
+source/src/sld
+source/src/sle
+source/src/bench.*
+
