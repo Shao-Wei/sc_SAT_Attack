@@ -1121,3 +1121,85 @@ void solver_t::findFixedKeys(std::map<int, int>& backbones)
 #endif
     //std::cout << "# of backbones found: " << backbones.size() << std::endl;
 }
+
+/**Function*************************************************************
+  Synopsis    [ Add extra constraints from DIMACS to solver. Assumes that the
+   first k literals correspond to the key inputs.]
+  Description [ ]               
+  SideEffects [ ]
+  SeeAlso     [ ]
+***********************************************************************/
+void solver_t::addKeyConstraints(char * extra_key_cnst)
+{
+    using namespace sat_n;
+
+    char * line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    char * holder;
+    int i, c;
+    int hCount, lit_holder[keyinput_literals_A.size() + 1];
+
+    int nVars, nClauses;
+    int var_lift;
+    Lit ori, ext;
+
+    FILE * fp = fopen(extra_key_cnst, "r");
+    if(fp == NULL) { return; }
+
+    // read header
+    read = getline(&line, &len, fp);
+    if(read == -1) { 
+        printf("Error: no header found in extra_key_cnst.\n");
+        fclose(fp); 
+        return; 
+    }
+    holder = strtok(line, " \n"); // p
+    holder = strtok(NULL, " \n"); // cnf
+    holder = strtok(NULL, " \n"); // <var>
+    nVars = atoi(holder);
+    holder = strtok(NULL, " \n"); // <clauses>
+    nClauses = atoi(holder);
+
+    if(nVars < keyinput_literals_A.size()) {
+        printf("Error: number of variables in extra constraints should be at least the number of key inputs.\n");
+        fclose(fp);
+        return;
+    }
+
+    // lift variables
+    var_lift = Scand.nVars();
+    for (i=0; i<nVars; i++)
+        Scand.newVar();
+    // bind the inputs
+    for (i=0; i<keyinput_literals_A.size(); i++) { 
+        ori = candidate_keyinput_literals[i];
+        ext = mkLit(i+1+var_lift); // DIMACS variables starts with 1
+        vec_lit_t bc0(2);
+        bc0[0] = ori; bc0[1] = ~ext;
+        Scand.addClause(bc0);
+        vec_lit_t bc1(2);
+        bc1[0] = ~ori; bc1[1] = ext;
+        Scand.addClause(bc1);
+    }
+    // parse the constraints
+    while ((read = getline(&line, &len, fp)) != -1) {
+		holder = strtok(line, " \n");
+        hCount = 0;
+        if(strcmp(holder, "c") == 0) // comments
+            continue;
+        while (holder != NULL) {
+            lit_holder[hCount] = atoi(holder);
+            holder = strtok(NULL, " \n");
+            hCount++;
+        }
+        vec_lit_t bc(hCount - 1);
+        for( i=0; i<hCount - 1; i++ ) {
+            c = lit_holder[i];
+            // lift the variables, then bind the inputs
+            bc[i] = (c>0)? mkLit(abs(c) + var_lift): ~mkLit(abs(c) + var_lift);
+        }
+        Scand.addClause(bc);   
+    }
+    fclose(fp);
+}

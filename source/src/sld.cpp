@@ -30,6 +30,7 @@ int print_info = 0;
 int slice = 0;
 int tv_quit = 0;
 int more_keys = 1;
+char * extra_key_cnst = NULL;
 
 // appsat options.
 int appsat_iter = 0;
@@ -48,7 +49,7 @@ int sld_main(int argc, char* argv[])
     int cpu_limit = -1;
     int64_t data_limit = -1;
 
-    while ((c = getopt (argc, argv, "ihvpPtTc:m:k:sN:D:a:q:S:")) != -1) {
+    while ((c = getopt (argc, argv, "ihvpPtTc:m:k:sN:D:a:q:S:X:")) != -1) {
         switch (c) {
             case 'h':
                 return print_usage(argv[0]);
@@ -97,6 +98,9 @@ int sld_main(int argc, char* argv[])
                 break;
             case 'S':
                 appsat_threshold = atoi(optarg);
+                break;
+            case 'X':
+                extra_key_cnst = optarg;
                 break;
             default:
                 break;
@@ -167,11 +171,22 @@ int sld_main(int argc, char* argv[])
             setup_timer();
         }
 
+        // extra_key_cnst force settings
+        if( extra_key_cnst) {
+            known_keystring.clear(); // disable -k known_keystring
+            tvs_en = 0; // disable -t test vector solver
+            slice = 0; // disable -s slicing and dicing
+        }
+
         if(print_info) {
             std::cout << argv[optind] << " " << ckt.num_ckt_inputs() << " " << ckt.num_outputs()
                       << " " << ckt.num_gates() <<  " " << ckt.num_key_inputs() << std::endl;
         } else {
-            solve(ckt, simckt);
+            // solve(ckt, simckt);
+            if(extra_key_cnst == NULL)
+                solve(ckt, simckt);
+            else
+                solve(ckt, simckt, extra_key_cnst);
         }
     }
 
@@ -349,6 +364,48 @@ void solve(ckt_n::ckt_t& ckt, ckt_n::ckt_t& simckt)
     solver = NULL;
 }
 
+void solve(ckt_n::ckt_t& ckt, ckt_n::ckt_t& simckt, char * extra_key_cnst) 
+{
+    assert( extra_key_cnst != NULL );
+    using namespace ckt_n;
+    using namespace AllSAT;
+
+    std::cout << "inputs=" << ckt.num_ckt_inputs() 
+        << " keys=" << ckt.num_key_inputs() 
+        << " outputs=" << ckt.num_outputs()
+        << " gates=" << ckt.num_gates()
+        << std::endl;
+
+    ckt.cleanup();
+
+    // create an array of key names.
+    std::vector<std::string> keyNames(ckt.num_key_inputs());
+    for(unsigned i=0; i != ckt.num_key_inputs(); i++) {
+        keyNames[i] = ckt.key_inputs[i]->name;
+    }
+
+    /** Some options are not supported when using extra_key_cnst option
+     * -k known key
+     * -t test vector solver
+     * -s slicing and dicing
+     * **/
+    std::map<std::string, int> keysFound;
+
+    solver_t S(ckt, simckt, verbose);
+    solver = &S;
+    S.addKeyConstraints(extra_key_cnst);
+    S.solve(solver_t::SOLVER_V0, keysFound, false);
+    dump_keys(keyNames, keysFound);
+    for(int i=1; i < more_keys; i++) {
+        S.blockKey(keysFound);
+        if(!S.getNewKey(keysFound)) break;
+        dump_keys(keyNames, keysFound);
+    }
+
+    dump_status();
+    solver = NULL;
+}
+
 void dump_keys(std::vector<std::string>& keyNames, std::map<std::string, int>& keysFound)
 {
     std::cout << "key=";
@@ -380,6 +437,7 @@ int print_usage(const char* progname)
     std::cout << "    -s            : enable slicing and dicing." << std::endl;
     std::cout << "    -t            : enable test vector solver (ATPG attack)." << std::endl;
     std::cout << "    -P            : toggle preloading test vectors (default=1)." << std::endl;
+    std::cout << "    -X <dimacs>   : provide extra constraints on keys." << std::endl;
 
     std::cout << std::endl;
     std::cout << "  AppSAT options." << std::endl;

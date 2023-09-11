@@ -211,6 +211,7 @@ public:
     void blockKey(rmap_t& keysFoundMap);
     bool getNewKey(rmap_t& keysFoundMap);
     void findFixedKeys(std::map<int, int>& backbones);
+    void addKeyConstraints(char * extra_key_cnst);
 
     static void solveSlice(
         slice_t& slice, 

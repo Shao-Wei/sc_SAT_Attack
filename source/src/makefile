@@ -69,7 +69,7 @@ else
 	CPLEXDEFINES:=
 endif
 
-CXXFLAGS:=-c -Wall -Werror -Wno-error=deprecated -fopenmp -std=c++0x ${INCLUDE} ${DEFINES} ${DBGFLAGS} ${OPTFLAGS} ${PGFLAGS} ${LD_STATIC} -Wno-strict-overflow # -Wno-unused-result -Wno-unused-function
+CXXFLAGS:=-c -Wall -Wno-unused-local-typedefs -Wno-unused-variable -Wno-error=deprecated -fopenmp -std=c++0x ${INCLUDE} ${DEFINES} ${DBGFLAGS} ${OPTFLAGS} ${PGFLAGS} ${LD_STATIC} -Wno-strict-overflow # -Wno-unused-result -Wno-unused-function
 LFLAGS:=-c -Wall ${INCLUDE} ${DEFINES} ${DBGFLAGS} ${OPTFLAGS} ${PGFLAGS} # -Wno-unused-result -Wno-unused-function
 # LDFLAGS:=${DBGFLAGS} ${OPTFLAGS} ${PGFLAGS} $(CUDDLIBRARIES)  ${CPLEXLIBRARIES}  $(CMSATLIBRARIES) ${LGLLIBRARIES} ${LD_STATIC}
 LFLLIBRARIES=-L${CONDA_PREFIX}/lib

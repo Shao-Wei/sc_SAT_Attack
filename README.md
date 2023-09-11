@@ -1,6 +1,11 @@
 # sc_SAT_Attack
 A modified redistribution of SAT attack tool on logic locking.
 
+We mark the changes made to this distribution as follows:
+- Add `.gitignore`: ignore changes made to external packages
+<!-- - Modify `source/minisat/core/SolverTypes.h`: fix friend declaration specifying a default argument must be a definition -->
+- Modified source/src/makefile: add options `-Wno-unused-variable`, `-Wno-unused-local-typedefs` to suppress errors
+
 ---------------
 **Below are the readme from the repo of the modified redistribution by descyphy**
 
