@@ -1186,7 +1186,9 @@ void solver_t::addKeyConstraints(char * extra_key_cnst)
     while ((read = getline(&line, &len, fp)) != -1) {
 		holder = strtok(line, " \n");
         hCount = 0;
-        if(strcmp(holder, "c") == 0) // comments
+        if(holder == NULL)
+            continue;
+        if(holder[0] == 'c') // comments
             continue;
         while (holder != NULL) {
             lit_holder[hCount] = atoi(holder);
