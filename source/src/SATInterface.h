@@ -307,6 +307,9 @@ namespace sat_n
         int64_t getNumDecisions() const {
             return lglgetdecs(solver);
         }
+        int64_t getNumConflicts() const {
+            return lglgetconfs(solver);
+        }
     };
 #endif
 }

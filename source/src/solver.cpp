@@ -312,7 +312,8 @@ bool solver_t::_solve_v0(rmap_t& keysFound, bool quiet, int dlimFactor)
         std::cout << "iteration: " << iter 
                   << "; vars: " << Scex.nVars() 
                   << "; clauses: " << Scex.nClauses() 
-                  << "; decisions: " << Scex.getNumDecisions() << std::endl;
+                  << "; decisions: " << Scex.getNumDecisions() 
+                  << "; conflicts: " << Scex.getNumConflicts() << std::endl;
 
 
         // now extract the inputs.
