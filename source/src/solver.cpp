@@ -160,21 +160,21 @@ void solver_t::_record_sim(
     iovectors[last].outputs = output_values;
 
     // extract inputs and put them in the array.
-    std::cout << "DIP=<";
+    // std::cout << "DIP=<";
     for(unsigned i=0; i != input_values.size(); i++) {
         lbool val = input_values[i] ? l_True : l_False;
         int jdx  = dbl.dbl->ckt_inputs[i]->get_index();
         assert(var(lmap[jdx]) < values.size());
         assert(var(lmap[jdx]) >= 0);
         values[var(lmap[jdx])] = val;
-        std::cout << input_values[i];
+        // std::cout << input_values[i];
 
         int idx = ckt.ckt_inputs[i]->get_index();
         candidate_values[var(candidate_lmap[idx])] = val;
     }
-    std::cout << "> ";
+    // std::cout << "> ";
 
-    std::cout << "O(DIP)=<";
+    // std::cout << "O(DIP)=<";
     // and then the outputs.
     for(unsigned i=0; i != ckt.num_outputs(); i++) {
         node_t* n_i = ckt.outputs[i];
@@ -188,13 +188,13 @@ void solver_t::_record_sim(
         assert(vB < values.size() && vB >= 0);
         if(output_values[i] == true) {
             candidate_values[v] = values[vA] = values[vB] = sat_n::l_True;
-            std::cout << "1";
+            // std::cout << "1";
         } else {
             candidate_values[v] = values[vA] = values[vB] = sat_n::l_False;
-            std::cout << "0";
+            // std::cout << "0";
         }
     }
-    std::cout << ">\n";
+    // std::cout << ">\n";
 }
 
 // Evaluates the output for the values stored in input_values and then records
