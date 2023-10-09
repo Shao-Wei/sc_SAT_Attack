@@ -351,6 +351,8 @@ bool solver_t::_solve_v0(rmap_t& keysFound, bool quiet, int dlimFactor)
         int fail_count = _verify_solution_sim(keysFound);
         std::cout << "finished solver loop. fail_count = " 
                   << fail_count << std::endl;
+        nDecision = Scex.getNumDecisions();
+        nConflict = Scex.getNumConflicts();
     }
     return done;
 }

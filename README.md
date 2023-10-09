@@ -8,6 +8,7 @@ We mark the changes made to this distribution as follows:
 - Log
     - Mute stdout in solver_t::_record_input_values
     - Print number of conflicts
+    - User specified log file written (option -L <file>)
 
 ---------------
 **Below are the readme from the repo of the modified redistribution by descyphy**

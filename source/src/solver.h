@@ -194,6 +194,8 @@ public:
     volatile int iter;
     volatile int backbones_count;
     volatile int cube_count;
+    volatile int nDecision;
+    volatile int nConflict;
 
 
     solver_t(ckt_n::ckt_t& ckt, ckt_n::ckt_t& sim, int verbose);

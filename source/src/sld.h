@@ -28,11 +28,12 @@ extern int appsat_threshold;
 
 int print_usage(const char* progname);
 void test_ckt(ckt_n::ckt_t& ckt);
-void solve(ckt_n::ckt_t& ckt, ckt_n::ckt_t& simckt);
-void solve(ckt_n::ckt_t& ckt, ckt_n::ckt_t& simckt, char * extra_key_cnst);
+void solve(ckt_n::ckt_t& ckt, ckt_n::ckt_t& simckt, char * logfile);
+void solve(ckt_n::ckt_t& ckt, ckt_n::ckt_t& simckt, char * extra_key_cnst, char * logfile);
 void alarm_handler(int signum);
 void setup_timer(void);
 void dump_status(void);
+void dump_status(char * logfile);
 
 void cpux_handler(int signum);
 void setup_cpux_handler(void);

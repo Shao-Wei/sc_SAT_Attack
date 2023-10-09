@@ -31,6 +31,7 @@ int slice = 0;
 int tv_quit = 0;
 int more_keys = 1;
 char * extra_key_cnst = NULL;
+char * logfile = NULL;
 
 // appsat options.
 int appsat_iter = 0;
@@ -49,7 +50,7 @@ int sld_main(int argc, char* argv[])
     int cpu_limit = -1;
     int64_t data_limit = -1;
 
-    while ((c = getopt (argc, argv, "ihvpPtTc:m:k:sN:D:a:q:S:X:")) != -1) {
+    while ((c = getopt (argc, argv, "ihvpPtTc:m:k:sN:D:a:q:S:X:L:")) != -1) {
         switch (c) {
             case 'h':
                 return print_usage(argv[0]);
@@ -101,6 +102,9 @@ int sld_main(int argc, char* argv[])
                 break;
             case 'X':
                 extra_key_cnst = optarg;
+                break;
+            case 'L':
+                logfile = optarg;
                 break;
             default:
                 break;
@@ -184,9 +188,9 @@ int sld_main(int argc, char* argv[])
         } else {
             // solve(ckt, simckt);
             if(extra_key_cnst == NULL)
-                solve(ckt, simckt);
+                solve(ckt, simckt, logfile);
             else
-                solve(ckt, simckt, extra_key_cnst);
+                solve(ckt, simckt, extra_key_cnst, logfile);
         }
     }
 
@@ -292,7 +296,7 @@ int slice_solve(std::map<std::string, int>& keysFound, ckt_n::ckt_t& ckt, ckt_n:
     }
     return cnt;
 }
-void solve(ckt_n::ckt_t& ckt, ckt_n::ckt_t& simckt) 
+void solve(ckt_n::ckt_t& ckt, ckt_n::ckt_t& simckt, char * logfile) 
 {
     using namespace ckt_n;
     using namespace AllSAT;
@@ -360,11 +364,11 @@ void solve(ckt_n::ckt_t& ckt, ckt_n::ckt_t& simckt)
         dump_keys(keyNames, keysFound);
     }
 
-    dump_status();
+    dump_status(logfile);
     solver = NULL;
 }
 
-void solve(ckt_n::ckt_t& ckt, ckt_n::ckt_t& simckt, char * extra_key_cnst) 
+void solve(ckt_n::ckt_t& ckt, ckt_n::ckt_t& simckt, char * extra_key_cnst, char * logfile) 
 {
     assert( extra_key_cnst != NULL );
     using namespace ckt_n;
@@ -402,7 +406,7 @@ void solve(ckt_n::ckt_t& ckt, ckt_n::ckt_t& simckt, char * extra_key_cnst)
         dump_keys(keyNames, keysFound);
     }
 
-    dump_status();
+    dump_status(logfile);
     solver = NULL;
 }
 
@@ -470,6 +474,44 @@ void dump_status(void)
               << "; cube_count=" << cube_count
               << "; cpu_time=" << cpu_time
               << "; maxrss=" << rss << std::endl;
+}
+
+void dump_status(char * logfile)
+{
+    struct rusage ru;
+    getrusage(RUSAGE_SELF, &ru);
+
+    double cpu_time = 
+        (double) (ru.ru_utime.tv_sec + ru.ru_stime.tv_sec) + 
+        (double) (ru.ru_utime.tv_usec + ru.ru_stime.tv_usec) * 1e-6;
+    double rss = ((double) ru.ru_maxrss) / 1024.0;
+
+    int iter = 0, backbones_count = 0, cube_count = 0, nDecision = 0, nConflict = 0;
+    if(solver != NULL) {
+        iter = solver->iter;
+        backbones_count = solver->backbones_count;
+        cube_count = solver->cube_count;
+        nDecision = solver->nDecision;
+        nConflict = solver->nConflict;
+    }
+
+    std::cout << "iteration=" << iter
+              << "; backbones_count=" << backbones_count
+              << "; cube_count=" << cube_count
+              << "; cpu_time=" << cpu_time
+              << "; maxrss=" << rss << std::endl;
+
+    /** Shao-Wei@TAMU 10/2023 self defined log file contects **/
+    FILE * fp = NULL;
+    if( !logfile ) 
+        return;  
+    fp = fopen(logfile, "a");
+    if( !fp ) 
+        return;
+    // iter, cpu_time, decision, conflict
+    fprintf(fp, "%i, %f, %i, %i\n", iter, cpu_time, nDecision, nConflict);
+    fclose(fp);
+    /** End **/
 }
 
 void alarm_handler(int signum)
